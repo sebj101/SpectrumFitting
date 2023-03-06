@@ -1,0 +1,3 @@
+[submodule "TBetaGenerator"]
+	path = TBetaGenerator
+	url = https://github.com/QTNM/TBetaGenerator
