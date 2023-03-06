@@ -12,3 +12,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # Build the submodule
 add_subdirectory(TBetaGenerator)
+
+# Source code directory
+add_subdirectory(src)
