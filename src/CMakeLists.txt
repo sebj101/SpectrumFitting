@@ -7,4 +7,5 @@ add_definitions(${ROOT_CXX_FLAGS})
 
 # Build executables
 add_executable(ToyEndpoint ToyEndpoint.cpp)
+target_link_libraries(ToyEndpoint PRIVATE ${ROOT_LIBRARIES})
 target_include_directories(ToyEndpoint PRIVATE ${PROJECT_SOURCE_DIR}/TBetaGenerator)
