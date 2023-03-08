@@ -18,7 +18,7 @@ class Spectrum {
   double spectrumSize;  // Spectrum size [eV]
   double endpoint;      // Spectrum endpoint [eV]
   double background;    // Background rate [eV^-1 s^-1]
-  double eta;           // Fraction of events within window
+  double windowFrac;    // Fraction of events within window
 
   // Masses of the neutrino mass eigenstates
   double m1;
@@ -27,13 +27,18 @@ class Spectrum {
 
   double CalcMBetaFromStates(double m1, double m2, double m3, bool no);
 
+  /// @brief Calculate differential decay rate for a given electron KE
+  /// @param electronT Electron kinetic energy [eV]
+  /// @return Returns differential decay rate [s^-1 eV^-1]
+  double dGammadE(double electronT);
+
  public:
   Spectrum(bool NO, double nuMass, double exp, double specSize,
            double endE = 18575, double bkg = 1e-6);
 
   double GetSpecSize() { return spectrumSize; }
   double GetBkgRate() { return background; }
-  double GetDecayFrac() { return eta; }
+  double GetDecayFrac() { return windowFrac; }
   double GetMBeta() { return mBeta; }
 };
 }  // namespace spec
