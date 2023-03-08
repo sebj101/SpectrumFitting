@@ -14,7 +14,7 @@ class Spectrum {
  private:
   bool normalOrdering;  // If true, normally ordered
   double mBeta;         // Effective neutrino mass [eV/c^2]
-  double runTime;       // Running time [s]
+  double exposure;      // Exposure [atom years]
   double spectrumSize;  // Spectrum size [eV]
   double endpoint;      // Spectrum endpoint [eV]
   double background;    // Background rate [eV^-1 s^-1]
@@ -28,7 +28,7 @@ class Spectrum {
   double CalcMBetaFromStates(double m1, double m2, double m3, bool no);
 
  public:
-  Spectrum(bool NO, double nuMass, double time, double specSize,
+  Spectrum(bool NO, double nuMass, double exp, double specSize,
            double endE = 18575, double bkg = 1e-6);
 
   double GetSpecSize() { return spectrumSize; }

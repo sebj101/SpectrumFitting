@@ -8,11 +8,11 @@
 
 #include "src/include/NuFitParams.h"
 
-spec::Spectrum::Spectrum(bool NO, double nuMass, double time, double specSize,
+spec::Spectrum::Spectrum(bool NO, double nuMass, double exp, double specSize,
                          double endE, double bkg)
     : normalOrdering(NO),
       mBeta(nuMass),
-      runTime(time),
+      exposure(exp),
       spectrumSize(specSize),
       endpoint(endE),
       background(bkg) {
@@ -55,6 +55,8 @@ spec::Spectrum::Spectrum(bool NO, double nuMass, double time, double specSize,
     // Some output for checking we are doing this correctly
     std::cout << "Inputted m_beta = " << mBeta << " eV\t Calculated m_beta = "
               << CalcMBetaFromStates(m1, m2, m3, normalOrdering) << " eV\n";
+
+    // Now time to calculate the fraction of events
   }
 }
 
