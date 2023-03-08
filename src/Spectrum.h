@@ -25,6 +25,12 @@ class Spectrum {
   double m2;
   double m3;
 
+  /// @brief Calculate the effective neutrino mass from the mass eigenstates
+  /// @param m1 Mass of m1 [eV]
+  /// @param m2 Mass of m2 [eV]
+  /// @param m3 Mass of m3 [eV]
+  /// @param no Is the neutrino mass hierarchy normal?
+  /// @return Effective neutrino mass [eV]
   double CalcMBetaFromStates(double m1, double m2, double m3, bool no);
 
   /// @brief Calculate differential decay rate for a given electron KE
