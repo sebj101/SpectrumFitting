@@ -38,6 +38,13 @@ class Spectrum {
   /// @return Returns differential decay rate [s^-1 eV^-1]
   double dGammadE(double electronT);
 
+  /// @brief Integrates the differential decay spectrum up to the endpoint,
+  /// using the rectangle method
+  /// @param eMin Lower bound to integrate from
+  /// @param nPnts Number of bins to use for the integration
+  /// @return Spectrum integral
+  double SpectrumIntegral(double eMin, int nPnts);
+
  public:
   Spectrum(bool NO, double nuMass, double exp, double specSize,
            double endE = 18575, double bkg = 1e-6);

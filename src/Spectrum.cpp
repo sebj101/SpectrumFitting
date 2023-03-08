@@ -58,6 +58,10 @@ spec::Spectrum::Spectrum(bool NO, double nuMass, double exp, double specSize,
               << CalcMBetaFromStates(m1, m2, m3, normalOrdering) << " eV\n";
 
     // Now time to calculate the fraction of events in our window
+    const double totalSpecInt{SpectrumIntegral(0, 40000)};
+    const double windowSpecInt{
+        SpectrumIntegral(endpoint - spectrumSize, 20000)};
+    windowFrac = windowSpecInt / totalSpecInt;
   }
 }
 
@@ -103,4 +107,15 @@ double spec::Spectrum::CalcMBetaFromStates(double m1, double m2, double m3,
   } else {
     return sqrt(Ue1SqIH * m1 * m1 + Ue2SqIH * m2 * m2 + Ue3SqIH * m3 * m3);
   }
+}
+
+double spec::Spectrum::SpectrumIntegral(double eMin, int nBins) {
+  double integral{0};
+  double rectangleWidth{(endpoint - eMin) / double(nBins)};
+  double eEval{eMin + rectangleWidth / 2};
+  for (int n{0}; n < nBins; n++) {
+    integral += rectangleWidth * dGammadE(eEval);
+    eEval += rectangleWidth;
+  }
+  return integral;
 }
