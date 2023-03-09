@@ -59,9 +59,6 @@ spec::Spectrum::Spectrum(bool NO, double nuMass, double time, double atoms,
       m1 = sqrt(m2 * m2 + kNuFitDmsq21NH);
     }
   }
-  // Some output for checking we are doing this correctly
-  std::cout << "Inputted m_beta = " << mBeta << " eV\t Calculated m_beta = "
-            << CalcMBetaFromStates(m1, m2, m3, normalOrdering) << " eV\n";
 
   // Now time to calculate the fraction of events in our window
   const double totalSpecInt{SpectrumIntegral(0, endpoint, 400000)};
@@ -74,24 +71,16 @@ spec::Spectrum::Spectrum(bool NO, double nuMass, double time, double atoms,
   const double oneYear{31536000};
   // Calculate rate in last eV in absence of mass
   const double r{nAtoms * lasteVFrac / tauMean};
-  std::cout << "Spectrum: r = " << r << std::endl;
-
   // Calculate optimum energy window
   const double deltaEOpt{sqrt(background / r)};
-  std::cout << "Spectrum: Delta E opt = " << deltaEOpt << " eV\n";
-
   // Number of throws in energy window
   const double windowRate{nAtoms * windowFrac / tauMean};
   const double reqThrowsWindow{time * oneYear * windowRate};
   // Number of bins
   int nDistBins{int(std::round((spectrumSize + 5) / deltaEOpt))};
-  std::cout << "Spectrum: " << nDistBins << " bins with " << reqThrowsWindow
-            << " signal events.\n";
 
   // Calculate the number of background throws
   const double avgBkgEvents{background * (spectrumSize + 5) * oneYear * time};
-  std::cout << "Spectrum: Mean number of background throws = " << avgBkgEvents
-            << std::endl;
 
   hSpec = TH1D("", "; Electron energy [eV]; N_{electrons}", nDistBins,
                endpoint - spectrumSize, endpoint + 5);
