@@ -89,8 +89,8 @@ spec::Spectrum::Spectrum(bool NO, double nuMass, double time, double atoms,
             << " signal events.\n";
 
   // Calculate the number of background throws
-  const double reqBkgThrows{background * (spectrumSize + 5) * oneYear * time};
-  std::cout << "Spectrum: Number of background throws = " << reqBkgThrows
+  const double avgBkgEvents{background * (spectrumSize + 5) * oneYear * time};
+  std::cout << "Spectrum: Mean number of background throws = " << avgBkgEvents
             << std::endl;
 
   hSpec = TH1D("", "; Electron energy [eV]; N_{electrons}", nDistBins,
@@ -114,6 +114,17 @@ spec::Spectrum::Spectrum(bool NO, double nuMass, double time, double atoms,
     double meanDecays{binDecayRate * nAtoms * runningTime * oneYear};
     std::poisson_distribution<long> p(meanDecays);
     hSpec.SetBinContent(iBin, p(rng));
+  }
+
+  // Now add the background events
+  // Poisson dist with mean of the calculated number of events
+  std::poisson_distribution<int> pBkg(avgBkgEvents);
+  std::uniform_real_distribution<double> eDist(endpoint - spectrumSize,
+                                               endpoint + 5);
+  const int nBkgEvents{pBkg(rng)};
+  for (int iBkg{0}; iBkg < nBkgEvents; iBkg++) {
+    double bkgE{eDist(rng)};
+    hSpec.Fill(bkgE);
   }
 }
 
