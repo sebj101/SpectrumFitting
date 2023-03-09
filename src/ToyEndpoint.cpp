@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
   // exposure of tritium
   const double chosenEndpoint{18575};
   const double totalSpectrumIntegralMassless{
-      SpectrumIntegral(1, chosenEndpoint, 400000, 0)};
+      SpectrumIntegral(0, chosenEndpoint, 400000, 0)};
   const double spectrumIntegralLasteV{
       SpectrumIntegral(chosenEndpoint - 1, chosenEndpoint, 20000, 0)};
   const double spectrumIntegralLast100eV{
@@ -178,10 +178,32 @@ int main(int argc, char *argv[]) {
   cout << "Filling " << nDistBins << " bins with " << requiredThrows100eV
        << " throws.\n";
 
-  // auto hSpec = make_unique<TH1D>("hSpec", "; [keV]; N_{events}", nDistBins,
-  //                                chosenEndpoint - 100, chosenEndpoint + 5);
+  /////////////// Spectrum testing /////////////////////
+  const double nTestAtoms{1e20};
+  const double times{1};           // years
+  const double specSize{100};      // eV
+  const double nuMassLight{0.05};  // eV
+  const double nuMassHeavy{1};     // eV
+  const double nuMassMassless{0};  // eV
 
-  Spectrum testSpec(false, 0.5, 0, 100);
+  Spectrum testSpecHeavy(true, nuMassHeavy, times, nTestAtoms, specSize);
+  auto specHistHeavy = testSpecHeavy.GetSpectrum();
+  Spectrum testSpecLight(true, nuMassLight, times, nTestAtoms, specSize);
+  auto specHistLight = testSpecLight.GetSpectrum();
+  Spectrum testSpecMassless(true, nuMassMassless, times, nTestAtoms, specSize);
+  auto specHistMassless = testSpecMassless.GetSpectrum();
+
+  fout->cd();
+
+  specHistHeavy->SetDirectory(0);
+  specHistLight->SetDirectory(0);
+  specHistMassless->SetDirectory(0);
+  specHistHeavy->Write("specHistHeavy");
+  specHistLight->Write("specHistLight");
+  specHistMassless->Write("specHistMassless");
+
+  // specHist.reset();
+  // specHist2.reset();
 
   fout->Close();
   return 0;

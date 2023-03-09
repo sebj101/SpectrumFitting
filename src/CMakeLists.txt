@@ -8,7 +8,7 @@ add_definitions(${ROOT_CXX_FLAGS})
 # Generate library from source files
 add_library(Spectrum)
 target_sources(Spectrum PRIVATE Spectrum.cpp)
-
+target_link_libraries(Spectrum PRIVATE ${ROOT_LIBRARIES})
 
 # Build executables
 add_executable(ToyEndpoint ToyEndpoint.cpp)

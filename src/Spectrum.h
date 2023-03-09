@@ -9,12 +9,17 @@
 #ifndef SPECTRUM_H
 #define SPECTRUM_H
 
+#include <memory>
+
+#include "TH1.h"
+
 namespace spec {
 class Spectrum {
  private:
   bool normalOrdering;  // If true, normally ordered
   double mBeta;         // Effective neutrino mass [eV/c^2]
-  double exposure;      // Exposure [atom years]
+  double runningTime;   // Running time [years]
+  double nAtoms;        // Number of atoms
   double spectrumSize;  // Spectrum size [eV]
   double endpoint;      // Spectrum endpoint [eV]
   double background;    // Background rate [eV^-1 s^-1]
@@ -24,6 +29,8 @@ class Spectrum {
   double m1;
   double m2;
   double m3;
+
+  TH1D hSpec;
 
   /// @brief Calculate the effective neutrino mass from the mass eigenstates
   /// @param m1 Mass of m1 [eV]
@@ -41,18 +48,21 @@ class Spectrum {
   /// @brief Integrates the differential decay spectrum up to the endpoint,
   /// using the rectangle method
   /// @param eMin Lower bound to integrate from
+  /// @param eMax Upper bound to integrate to
   /// @param nPnts Number of bins to use for the integration
   /// @return Spectrum integral
-  double SpectrumIntegral(double eMin, int nPnts);
+  double SpectrumIntegral(double eMin, double eMax, int nPnts);
 
  public:
-  Spectrum(bool NO, double nuMass, double exp, double specSize,
+  Spectrum(bool NO, double nuMass, double time, double atoms, double specSize,
            double endE = 18575, double bkg = 1e-6);
 
   double GetSpecSize() { return spectrumSize; }
   double GetBkgRate() { return background; }
   double GetDecayFrac() { return windowFrac; }
   double GetMBeta() { return mBeta; }
+
+  std::unique_ptr<TH1D> GetSpectrum() { return std::make_unique<TH1D>(hSpec); }
 };
 }  // namespace spec
 

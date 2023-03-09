@@ -4,16 +4,22 @@
 
 #include "Spectrum.h"
 
+#include <chrono>
 #include <iostream>
+#include <random>
+#include <vector>
 
 #include "src/include/FundamentalConstants.h"
 #include "src/include/NuFitParams.h"
 
-spec::Spectrum::Spectrum(bool NO, double nuMass, double exp, double specSize,
-                         double endE, double bkg)
+typedef std::chrono::high_resolution_clock myClock;
+
+spec::Spectrum::Spectrum(bool NO, double nuMass, double time, double atoms,
+                         double specSize, double endE, double bkg)
     : normalOrdering(NO),
       mBeta(nuMass),
-      exposure(exp),
+      runningTime(time),
+      nAtoms(atoms),
       spectrumSize(specSize),
       endpoint(endE),
       background(bkg) {
@@ -52,16 +58,61 @@ spec::Spectrum::Spectrum(bool NO, double nuMass, double exp, double specSize,
       m2 = sqrt(m3 * m3 - kNuFitDmsq32IH);
       m1 = sqrt(m2 * m2 + kNuFitDmsq21NH);
     }
+  }
+  // Some output for checking we are doing this correctly
+  std::cout << "Inputted m_beta = " << mBeta << " eV\t Calculated m_beta = "
+            << CalcMBetaFromStates(m1, m2, m3, normalOrdering) << " eV\n";
 
-    // Some output for checking we are doing this correctly
-    std::cout << "Inputted m_beta = " << mBeta << " eV\t Calculated m_beta = "
-              << CalcMBetaFromStates(m1, m2, m3, normalOrdering) << " eV\n";
+  // Now time to calculate the fraction of events in our window
+  const double totalSpecInt{SpectrumIntegral(0, endpoint, 400000)};
+  const double windowSpecInt{
+      SpectrumIntegral(endpoint - spectrumSize, endpoint, 20000)};
+  windowFrac = windowSpecInt / totalSpecInt;
 
-    // Now time to calculate the fraction of events in our window
-    const double totalSpecInt{SpectrumIntegral(0, 40000)};
-    const double windowSpecInt{
-        SpectrumIntegral(endpoint - spectrumSize, 20000)};
-    windowFrac = windowSpecInt / totalSpecInt;
+  const double tauMean{560975924};
+  const double lasteVFrac{2.9e-13};
+  const double oneYear{31536000};
+  // Calculate rate in last eV in absence of mass
+  const double r{nAtoms * lasteVFrac / tauMean};
+  std::cout << "Spectrum: r = " << r << std::endl;
+
+  // Calculate optimum energy window
+  const double deltaEOpt{sqrt(background / r)};
+  std::cout << "Spectrum: Delta E opt = " << deltaEOpt << " eV\n";
+
+  // Number of throws in energy window
+  const double windowRate{nAtoms * windowFrac / tauMean};
+  const double reqThrowsWindow{time * oneYear * windowRate};
+  // Number of bins
+  int nDistBins{int(std::round((spectrumSize + 5) / deltaEOpt))};
+  std::cout << "Spectrum: " << nDistBins << " bins with " << reqThrowsWindow
+            << " signal events.\n";
+
+  // Calculate the number of background throws
+  const double reqBkgThrows{background * (spectrumSize + 5) * oneYear * time};
+  std::cout << "Spectrum: Number of background throws = " << reqBkgThrows
+            << std::endl;
+
+  hSpec = TH1D("", "; Electron energy [eV]; N_{electrons}", nDistBins,
+               endpoint - spectrumSize, endpoint + 5);
+  hSpec.SetLineColor(kBlack);
+  hSpec.GetXaxis()->SetTitleSize(.05);
+  hSpec.GetYaxis()->SetTitleSize(.05);
+  hSpec.GetXaxis()->SetLabelSize(.05);
+  hSpec.GetYaxis()->SetLabelSize(.05);
+
+  // Fill the histogram
+  // For each bin, calculate the mean number of decays and then use a Poisson
+  // distribution to get the acutal number of events
+  std::mt19937 rng(0);
+  for (int iBin{1}; iBin <= hSpec.GetNbinsX(); iBin++) {
+    // Integrate over bin
+    double binDecayRate{SpectrumIntegral(
+        hSpec.GetBinLowEdge(iBin),
+        hSpec.GetBinLowEdge(iBin) + hSpec.GetBinWidth(iBin), 10)};
+    double meanDecays{binDecayRate * nAtoms * runningTime * oneYear};
+    std::poisson_distribution<long> p(meanDecays);
+    hSpec.SetBinContent(iBin, p(rng));
   }
 }
 
@@ -109,13 +160,13 @@ double spec::Spectrum::CalcMBetaFromStates(double m1, double m2, double m3,
   }
 }
 
-double spec::Spectrum::SpectrumIntegral(double eMin, int nBins) {
+double spec::Spectrum::SpectrumIntegral(double eMin, double eMax, int nBins) {
   double integral{0};
-  double rectangleWidth{(endpoint - eMin) / double(nBins)};
-  double eEval{eMin + rectangleWidth / 2};
+  const double rectangleWidth{(eMax - eMin) / double(nBins)};
+  const double eEvalInit{eMin + rectangleWidth / 2};
   for (int n{0}; n < nBins; n++) {
+    double eEval{eEvalInit + double(n) * rectangleWidth};
     integral += rectangleWidth * dGammadE(eEval);
-    eEval += rectangleWidth;
   }
   return integral;
 }
