@@ -195,15 +195,9 @@ int main(int argc, char *argv[]) {
 
   fout->cd();
 
-  specHistHeavy->SetDirectory(0);
-  specHistLight->SetDirectory(0);
-  specHistMassless->SetDirectory(0);
-  specHistHeavy->Write("specHistHeavy");
-  specHistLight->Write("specHistLight");
-  specHistMassless->Write("specHistMassless");
-
-  // specHist.reset();
-  // specHist2.reset();
+  specHistHeavy.Write("specHistHeavy");
+  specHistLight.Write("specHistLight");
+  specHistMassless.Write("specHistMassless");
 
   fout->Close();
   return 0;

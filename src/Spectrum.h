@@ -62,7 +62,7 @@ class Spectrum {
   double GetDecayFrac() { return windowFrac; }
   double GetMBeta() { return mBeta; }
 
-  std::unique_ptr<TH1D> GetSpectrum() { return std::make_unique<TH1D>(hSpec); }
+  TH1D GetSpectrum() { return hSpec; }
 };
 }  // namespace spec
 
