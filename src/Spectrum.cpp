@@ -104,7 +104,8 @@ spec::Spectrum::Spectrum(bool NO, double nuMass, double time, double atoms,
   // Fill the histogram
   // For each bin, calculate the mean number of decays and then use a Poisson
   // distribution to get the acutal number of events
-  std::mt19937 rng(0);
+  long int seed{std::chrono::system_clock::now().time_since_epoch().count()};
+  std::mt19937 rng(seed);
   for (int iBin{1}; iBin <= hSpec.GetNbinsX(); iBin++) {
     // Integrate over bin
     double binDecayRate{SpectrumIntegral(
