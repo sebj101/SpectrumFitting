@@ -75,7 +75,6 @@ spec::Spectrum::Spectrum(bool NO, double nuMass, double time, double atoms,
   const double deltaEOpt{sqrt(background / r)};
   // Number of throws in energy window
   const double windowRate{nAtoms * windowFrac / tauMean};
-  const double reqThrowsWindow{time * oneYear * windowRate};
   // Number of bins
   int nDistBins{int(std::round((spectrumSize + 5) / deltaEOpt))};
 
