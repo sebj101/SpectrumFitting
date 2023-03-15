@@ -13,4 +13,6 @@ target_link_libraries(Spectrum PRIVATE ${ROOT_LIBRARIES})
 # Build executables
 add_executable(ToyEndpoint ToyEndpoint.cpp)
 target_link_libraries(ToyEndpoint PRIVATE Spectrum ${ROOT_LIBRARIES})
-target_include_directories(ToyEndpoint PRIVATE ${PROJECT_SOURCE_DIR}/TBetaGenerator)
+
+add_executable(RandomSpectra RandomSpectra.cpp)
+target_link_libraries(RandomSpectra PRIVATE Spectrum ${ROOT_LIBRARIES})

@@ -62,8 +62,12 @@ spec::Spectrum::Spectrum(double time, double atoms, double specSize, double bkg)
   long int seed{std::chrono::system_clock::now().time_since_epoch().count()};
   std::mt19937 rng(seed);
   // Generate the random mass hierarchy
-  std::uniform_int_distribution<> dist(0, 1);
-  normalOrdering = (dist(rng) == 1);
+  std::uniform_real_distribution<double> dist(0, 1);
+  if (dist(rng) > 0.5) {
+    normalOrdering = true;
+  } else {
+    normalOrdering = false;
+  }
 
   // Generate the lightest neutrino mass
   const double mLeastMax{0.3};  // eV
