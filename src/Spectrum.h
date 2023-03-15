@@ -81,6 +81,8 @@ class Spectrum {
 
   double GetMBeta() { return mBeta; }
 
+  double GetQValue() { return endpoint; }
+
   bool IsNormallyOrdered() { return normalOrdering; }
 
   TH1D GetSpectrum() { return hSpec; }
