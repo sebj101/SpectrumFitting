@@ -12,8 +12,6 @@
 #include "src/include/FundamentalConstants.h"
 #include "src/include/NuFitParams.h"
 
-typedef std::chrono::high_resolution_clock myClock;
-
 spec::Spectrum::Spectrum(bool NO, double nuMass, double time, double atoms,
                          double specSize, double endE, double bkg)
     : normalOrdering(NO),
@@ -23,19 +21,8 @@ spec::Spectrum::Spectrum(bool NO, double nuMass, double time, double atoms,
       spectrumSize(specSize),
       endpoint(endE),
       background(bkg) {
-  // First calculate the masses of the neutrino eigenstates
-  double mBetaMin{0};
-  if (normalOrdering) {
-    const double m1Min{0};
-    const double m2Min{sqrt(m1Min * m1Min + kNuFitDmsq21NH)};
-    const double m3Min{sqrt(m1Min * m1Min + kNuFitDmsq31NH)};
-    mBetaMin = CalcMBetaFromStates(m1Min, m2Min, m3Min, true);
-  } else {
-    const double m3Min{0};
-    const double m2Min{sqrt(m3Min * m3Min - kNuFitDmsq32IH)};
-    const double m1Min{sqrt(m2Min * m2Min + kNuFitDmsq21NH)};
-    mBetaMin = CalcMBetaFromStates(m1Min, m2Min, m3Min, false);
-  }
+  // First calculate the minimum value of the neutrino mass
+  double mBetaMin{GetMBetaMin()};
 
   // Check that the neutrino mass is not too low
   // If it is, set neutrino to be massless
@@ -60,60 +47,61 @@ spec::Spectrum::Spectrum(bool NO, double nuMass, double time, double atoms,
     }
   }
 
-  // Now time to calculate the fraction of events in our window
+  windowFrac = CalcWindowFrac();
+
+  // Actually fill the spectrum
+  FillSpectrum();
+}
+
+spec::Spectrum::Spectrum(double time, double atoms, double specSize, double bkg)
+    : runningTime(time),
+      nAtoms(atoms),
+      spectrumSize(specSize),
+      background(bkg) {
+  // Seed generator
+  long int seed{std::chrono::system_clock::now().time_since_epoch().count()};
+  std::mt19937 rng(seed);
+  // Generate the random mass hierarchy
+  std::uniform_int_distribution<> dist(0, 1);
+  normalOrdering = (dist(rng) == 1);
+
+  // Generate the lightest neutrino mass
+  const double mLeastMax{0.3};  // eV
+  const double mLeastMin{0};    // eV
+  // Flat throw between these ranges
+  std::uniform_real_distribution<double> mLeastDist(mLeastMin, mLeastMax);
+  if (normalOrdering) {
+    m1 = mLeastDist(rng);
+    m2 = sqrt(m1 * m1 + kNuFitDmsq21NH);
+    m3 = sqrt(m1 * m1 + kNuFitDmsq31NH);
+  } else {
+    m3 = mLeastDist(rng);
+    m2 = sqrt(m3 * m3 - kNuFitDmsq32IH);
+    m1 = sqrt(m2 * m2 + kNuFitDmsq21NH);
+  }
+  // Calculate effective neutrino mass
+  mBeta = CalcMBetaFromStates(m1, m2, m3, normalOrdering);
+
+  // Use a gaussian throw for the endpoint
+  // Q value and uncertainty from
+  // Myers, Wagner, Kracke, & Wesson. PRL 114, 013003 (2015)
+  const double litQ{18575.72};  // eV
+  const double litQUnc{0.07};   // eV
+  std::normal_distribution<double> QDist(litQ, litQUnc);
+  endpoint = QDist(rng);
+
+  // Calculate fraction of events in window
+  windowFrac = CalcWindowFrac();
+
+  // Fill the spectrum
+  FillSpectrum();
+}
+
+double spec::Spectrum::CalcWindowFrac() {
   const double totalSpecInt{SpectrumIntegral(0, endpoint, 400000)};
   const double windowSpecInt{
       SpectrumIntegral(endpoint - spectrumSize, endpoint, 20000)};
-  windowFrac = windowSpecInt / totalSpecInt;
-
-  const double tauMean{560975924};
-  const double lasteVFrac{2.9e-13};
-  const double oneYear{31536000};
-  // Calculate rate in last eV in absence of mass
-  const double r{nAtoms * lasteVFrac / tauMean};
-  // Calculate optimum energy window
-  const double deltaEOpt{sqrt(background / r)};
-  // Number of throws in energy window
-  const double windowRate{nAtoms * windowFrac / tauMean};
-  // Number of bins
-  int nDistBins{int(std::round((spectrumSize + 5) / deltaEOpt))};
-
-  // Calculate the number of background throws
-  const double avgBkgEvents{background * (spectrumSize + 5) * oneYear * time};
-
-  hSpec = TH1D("", "; Electron energy [eV]; N_{electrons}", nDistBins,
-               endpoint - spectrumSize, endpoint + 5);
-  hSpec.SetLineColor(kBlack);
-  hSpec.GetXaxis()->SetTitleSize(.05);
-  hSpec.GetYaxis()->SetTitleSize(.05);
-  hSpec.GetXaxis()->SetLabelSize(.05);
-  hSpec.GetYaxis()->SetLabelSize(.05);
-
-  // Fill the histogram
-  // For each bin, calculate the mean number of decays and then use a Poisson
-  // distribution to get the acutal number of events
-  long int seed{std::chrono::system_clock::now().time_since_epoch().count()};
-  std::mt19937 rng(seed);
-  for (int iBin{1}; iBin <= hSpec.GetNbinsX(); iBin++) {
-    // Integrate over bin
-    double binDecayRate{SpectrumIntegral(
-        hSpec.GetBinLowEdge(iBin),
-        hSpec.GetBinLowEdge(iBin) + hSpec.GetBinWidth(iBin), 10)};
-    double meanDecays{binDecayRate * nAtoms * runningTime * oneYear};
-    std::poisson_distribution<long> p(meanDecays);
-    hSpec.SetBinContent(iBin, p(rng));
-  }
-
-  // Now add the background events
-  // Poisson dist with mean of the calculated number of events
-  std::poisson_distribution<int> pBkg(avgBkgEvents);
-  std::uniform_real_distribution<double> eDist(endpoint - spectrumSize,
-                                               endpoint + 5);
-  const int nBkgEvents{pBkg(rng)};
-  for (int iBkg{0}; iBkg < nBkgEvents; iBkg++) {
-    double bkgE{eDist(rng)};
-    hSpec.Fill(bkgE);
-  }
+  return windowSpecInt / totalSpecInt;
 }
 
 double spec::Spectrum::dGammadE(double electronT) {
@@ -169,4 +157,68 @@ double spec::Spectrum::SpectrumIntegral(double eMin, double eMax, int nBins) {
     integral += rectangleWidth * dGammadE(eEval);
   }
   return integral;
+}
+
+double spec::Spectrum::GetMBetaMin() {
+  if (normalOrdering) {
+    const double m1Min{0};
+    const double m2Min{sqrt(m1Min * m1Min + kNuFitDmsq21NH)};
+    const double m3Min{sqrt(m1Min * m1Min + kNuFitDmsq31NH)};
+    return CalcMBetaFromStates(m1Min, m2Min, m3Min, normalOrdering);
+  } else {
+    const double m3Min{0};
+    const double m2Min{sqrt(m3Min * m3Min - kNuFitDmsq32IH)};
+    const double m1Min{sqrt(m2Min * m2Min + kNuFitDmsq21NH)};
+    return CalcMBetaFromStates(m1Min, m2Min, m3Min, normalOrdering);
+  }
+}
+
+void spec::Spectrum::FillSpectrum() {
+  const double tauMean{560975924};
+  const double lasteVFrac{2.9e-13};
+  const double oneYear{31536000};
+  // Calculate rate in last eV in absence of mass
+  const double r{nAtoms * lasteVFrac / tauMean};
+  // Calculate optimum energy window
+  const double deltaEOpt{sqrt(background / r)};
+  // Number of bins
+  int nDistBins{int(std::round((spectrumSize + 5) / deltaEOpt))};
+
+  // Calculate the number of background throws
+  const double avgBkgEvents{background * (spectrumSize + 5) * oneYear *
+                            runningTime};
+
+  hSpec = TH1D("", "; Electron energy [eV]; N_{electrons}", nDistBins,
+               endpoint - spectrumSize, endpoint + 5);
+  hSpec.SetLineColor(kBlack);
+  hSpec.GetXaxis()->SetTitleSize(.05);
+  hSpec.GetYaxis()->SetTitleSize(.05);
+  hSpec.GetXaxis()->SetLabelSize(.05);
+  hSpec.GetYaxis()->SetLabelSize(.05);
+
+  // Fill the histogram
+  // For each bin, calculate the mean number of decays and then use a Poisson
+  // distribution to get the acutal number of events
+  long int seed{std::chrono::system_clock::now().time_since_epoch().count()};
+  std::mt19937 rng(seed);
+  for (int iBin{1}; iBin <= hSpec.GetNbinsX(); iBin++) {
+    // Integrate over bin
+    double binDecayRate{SpectrumIntegral(
+        hSpec.GetBinLowEdge(iBin),
+        hSpec.GetBinLowEdge(iBin) + hSpec.GetBinWidth(iBin), 10)};
+    double meanDecays{binDecayRate * nAtoms * runningTime * oneYear};
+    std::poisson_distribution<long> p(meanDecays);
+    hSpec.SetBinContent(iBin, double(p(rng)));
+  }
+
+  // Now add the background events
+  // Poisson dist with mean of the calculated number of events
+  std::poisson_distribution<int> pBkg(avgBkgEvents);
+  std::uniform_real_distribution<double> eDist(endpoint - spectrumSize,
+                                               endpoint + 5);
+  const int nBkgEvents{pBkg(rng)};
+  for (int iBkg{0}; iBkg < nBkgEvents; iBkg++) {
+    double bkgE{eDist(rng)};
+    hSpec.Fill(bkgE);
+  }
 }

@@ -30,6 +30,7 @@ class Spectrum {
   double m2;
   double m3;
 
+  // Histogram containing the spectrum
   TH1D hSpec;
 
   /// @brief Calculate the effective neutrino mass from the mass eigenstates
@@ -53,14 +54,34 @@ class Spectrum {
   /// @return Spectrum integral
   double SpectrumIntegral(double eMin, double eMax, int nPnts);
 
+  /// @brief Returns the minimum possible value of the effective neutrino mass
+  /// @return The minimum effective neutrino mass in eV
+  double GetMBetaMin();
+
+  /// @brief Calculates the fraction of the total decays happening in window
+  /// @return Fraction of decays in this bit of the beta decay spectrum
+  double CalcWindowFrac();
+
+  /// @brief Actually fills the fake spectrum according to the class parameters
+  void FillSpectrum();
+
  public:
   Spectrum(bool NO, double nuMass, double time, double atoms, double specSize,
-           double endE = 18575, double bkg = 1e-6);
+           double endE, double bkg);
+
+  /// @brief Constructor for random spectrum
+  /// @return Spectrum object
+  Spectrum(double time, double atoms, double specSize, double bkg);
 
   double GetSpecSize() { return spectrumSize; }
+
   double GetBkgRate() { return background; }
+
   double GetDecayFrac() { return windowFrac; }
+
   double GetMBeta() { return mBeta; }
+
+  bool IsNormallyOrdered() { return normalOrdering; }
 
   TH1D GetSpectrum() { return hSpec; }
 };

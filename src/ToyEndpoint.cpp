@@ -33,19 +33,24 @@ int main(int argc, char *argv[]) {
 
   /////////////// Spectrum testing /////////////////////
   const double nTestAtoms{1e20};
-  const double times{1};           // years
-  const double specSize{100};      // eV
-  const double nuMassLight{0.05};  // eV
-  const double nuMassHeavy{1};     // eV
-  const double nuMassMassless{0};  // eV
+  const double times{1};             // years
+  const double specSize{100};        // eV
+  const double nuMassLight{0.05};    // eV
+  const double nuMassHeavy{1};       // eV
+  const double nuMassMassless{0};    // eV
+  const double endpointE{18575.72};  // eV
+  const double bkg{1e-6};            // eV^-1 s^-1
 
-  Spectrum testSpecHeavy(true, nuMassHeavy, times, nTestAtoms, specSize);
+  Spectrum testSpecHeavy(true, nuMassHeavy, times, nTestAtoms, specSize,
+                         endpointE, bkg);
   auto specHistHeavy = testSpecHeavy.GetSpectrum();
   specHistHeavy.SetLineColor(kRed);
-  Spectrum testSpecLight(true, nuMassLight, times, nTestAtoms, specSize);
+  Spectrum testSpecLight(true, nuMassLight, times, nTestAtoms, specSize,
+                         endpointE, bkg);
   auto specHistLight = testSpecLight.GetSpectrum();
   specHistLight.SetLineColor(kCyan + 1);
-  Spectrum testSpecMassless(true, nuMassMassless, times, nTestAtoms, specSize);
+  Spectrum testSpecMassless(true, nuMassMassless, times, nTestAtoms, specSize,
+                            endpointE, bkg);
   auto specHistMassless = testSpecMassless.GetSpectrum();
   specHistMassless.SetLineColor(kBlack);
 
