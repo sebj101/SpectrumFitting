@@ -10,7 +10,6 @@
 
 #include "Spectrum.h"
 #include "TAxis.h"
-#include "TBetaGenerator.hpp"
 #include "TFile.h"
 #include "TGraph.h"
 #include "TH1.h"
