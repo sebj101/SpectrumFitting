@@ -226,3 +226,16 @@ void spec::Spectrum::FillSpectrum() {
     hSpec.Fill(bkgE);
   }
 }
+
+double spec::Spectrum::GetSigmaMBetaSq() {
+  const double tauMean{560975924};
+  const double lasteVFrac{2.9e-13};
+  const double oneYear{3.1536e7};
+  const double t{oneYear * runningTime};  // seconds
+  // Calculate rate in last eV in absence of mass
+  const double r{nAtoms * lasteVFrac / tauMean};
+  // Calculate optimum energy window
+  const double deltaEOpt{sqrt(background / r)};
+  double sigma{sqrt(r * t * deltaEOpt + background * t / deltaEOpt)};
+  return 2 / (3 * r * t) * sigma;
+}

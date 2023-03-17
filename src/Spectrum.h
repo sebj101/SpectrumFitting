@@ -73,6 +73,7 @@ class Spectrum {
   /// @return Spectrum object
   Spectrum(double time, double atoms, double specSize, double bkg);
 
+  // Member data getters
   double GetSpecSize() { return spectrumSize; }
 
   double GetBkgRate() { return background; }
@@ -86,6 +87,10 @@ class Spectrum {
   bool IsNormallyOrdered() { return normalOrdering; }
 
   TH1D GetSpectrum() { return hSpec; }
+
+  /// @brief Calculates (analytically) the standard deviation on m_beta^2
+  /// @return Standard deviation on m_beta^2 [eV^2]
+  double GetSigmaMBetaSq();
 };
 }  // namespace spec
 
