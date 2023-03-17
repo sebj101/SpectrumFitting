@@ -16,3 +16,6 @@ target_link_libraries(ToyEndpoint PRIVATE Spectrum ${ROOT_LIBRARIES})
 
 add_executable(RandomSpectra RandomSpectra.cpp)
 target_link_libraries(RandomSpectra PRIVATE Spectrum ${ROOT_LIBRARIES})
+
+add_executable(FitRangeTest FitRangeTest.cpp)
+target_link_libraries(FitRangeTest PRIVATE Spectrum ${ROOT_LIBRARIES})
