@@ -186,14 +186,15 @@ void spec::Spectrum::FillSpectrum() {
   // Calculate optimum energy window
   const double deltaEOpt{sqrt(background / r)};
   // Number of bins
-  int nDistBins{int(std::round((spectrumSize + 5) / deltaEOpt))};
+  const double distanceBeyondE0{10};
+  int nDistBins{int(std::round((spectrumSize + distanceBeyondE0) / deltaEOpt))};
 
   // Calculate the number of background throws
-  const double avgBkgEvents{background * (spectrumSize + 5) * oneYear *
-                            runningTime};
+  const double avgBkgEvents{background * (spectrumSize + distanceBeyondE0) *
+                            oneYear * runningTime};
 
   hSpec = TH1D("", "; Electron energy [eV]; N_{electrons}", nDistBins,
-               endpoint - spectrumSize, endpoint + 5);
+               endpoint - spectrumSize, endpoint + distanceBeyondE0);
   hSpec.SetLineColor(kBlack);
   hSpec.GetXaxis()->SetTitleSize(.05);
   hSpec.GetYaxis()->SetTitleSize(.05);
@@ -219,7 +220,7 @@ void spec::Spectrum::FillSpectrum() {
   // Poisson dist with mean of the calculated number of events
   std::poisson_distribution<int> pBkg(avgBkgEvents);
   std::uniform_real_distribution<double> eDist(endpoint - spectrumSize,
-                                               endpoint + 5);
+                                               endpoint + distanceBeyondE0);
   const int nBkgEvents{pBkg(rng)};
   for (int iBkg{0}; iBkg < nBkgEvents; iBkg++) {
     double bkgE{eDist(rng)};
