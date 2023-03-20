@@ -74,7 +74,7 @@ spec::Spectrum::Spectrum(double time, double atoms, double specSize, double bkg,
   }
 
   // Generate the lightest neutrino mass
-  const double mLeastMax{0.3};  // eV
+  const double mLeastMax{0.8};  // eV
   const double mLeastMin{0};    // eV
   // Flat throw between these ranges
   std::uniform_real_distribution<double> mLeastDist(mLeastMin, mLeastMax);
