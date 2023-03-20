@@ -13,14 +13,16 @@
 #include "src/include/NuFitParams.h"
 
 spec::Spectrum::Spectrum(bool NO, double nuMass, double time, double atoms,
-                         double specSize, double endE, double bkg)
+                         double specSize, double endE, double bkg,
+                         double deltaE)
     : normalOrdering(NO),
       mBeta(nuMass),
       runningTime(time),
       nAtoms(atoms),
       spectrumSize(specSize),
       endpoint(endE),
-      background(bkg) {
+      background(bkg),
+      dE(deltaE) {
   // First calculate the minimum value of the neutrino mass
   double mBetaMin{GetMBetaMin()};
 
@@ -53,11 +55,13 @@ spec::Spectrum::Spectrum(bool NO, double nuMass, double time, double atoms,
   FillSpectrum();
 }
 
-spec::Spectrum::Spectrum(double time, double atoms, double specSize, double bkg)
+spec::Spectrum::Spectrum(double time, double atoms, double specSize, double bkg,
+                         double deltaE)
     : runningTime(time),
       nAtoms(atoms),
       spectrumSize(specSize),
-      background(bkg) {
+      background(bkg),
+      dE(deltaE) {
   // Seed generator
   long int seed{std::chrono::system_clock::now().time_since_epoch().count()};
   std::mt19937 rng(seed);
@@ -185,9 +189,12 @@ void spec::Spectrum::FillSpectrum() {
   const double r{nAtoms * lasteVFrac / tauMean};
   // Calculate optimum energy window
   const double deltaEOpt{sqrt(background / r)};
+  // If left as default, use this for energy binning
+  if (dE == 0) dE = deltaEOpt;
+
   // Number of bins
   const double distanceBeyondE0{10};
-  int nDistBins{int(std::round((spectrumSize + distanceBeyondE0) / deltaEOpt))};
+  int nDistBins{int(std::round((spectrumSize + distanceBeyondE0) / dE))};
 
   // Calculate the number of background throws
   const double avgBkgEvents{background * (spectrumSize + distanceBeyondE0) *
@@ -236,7 +243,6 @@ double spec::Spectrum::GetSigmaMBetaSq() {
   // Calculate rate in last eV in absence of mass
   const double r{nAtoms * lasteVFrac / tauMean};
   // Calculate optimum energy window
-  const double deltaEOpt{sqrt(background / r)};
-  double sigma{sqrt(r * t * deltaEOpt + background * t / deltaEOpt)};
+  double sigma{sqrt(r * t * dE + background * t / dE)};
   return 2 / (3 * r * t) * sigma;
 }

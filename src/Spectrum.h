@@ -24,6 +24,7 @@ class Spectrum {
   double endpoint;      // Spectrum endpoint [eV]
   double background;    // Background rate [eV^-1 s^-1]
   double windowFrac;    // Fraction of events within window
+  double dE;            // Energy interval size [eV]
 
   // Masses of the neutrino mass eigenstates
   double m1;
@@ -66,12 +67,15 @@ class Spectrum {
   void FillSpectrum();
 
  public:
+  /// @brief Constructor where neutrino mass and endpoint are specified
+  /// @return Spectrum object
   Spectrum(bool NO, double nuMass, double time, double atoms, double specSize,
-           double endE, double bkg);
+           double endE, double bkg, double deltaE = 0);
 
   /// @brief Constructor for random spectrum
   /// @return Spectrum object
-  Spectrum(double time, double atoms, double specSize, double bkg);
+  Spectrum(double time, double atoms, double specSize, double bkg,
+           double deltaE = 0);
 
   // Member data getters
   double GetSpecSize() { return spectrumSize; }
