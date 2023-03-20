@@ -196,10 +196,6 @@ void spec::Spectrum::FillSpectrum() {
   const double distanceBeyondE0{10};
   int nDistBins{int(std::round((spectrumSize + distanceBeyondE0) / dE))};
 
-  // Calculate the number of background throws
-  const double avgBkgEvents{background * (spectrumSize + distanceBeyondE0) *
-                            oneYear * runningTime};
-
   hSpec = TH1D("", "; Electron energy [eV]; N_{electrons}", nDistBins,
                endpoint - spectrumSize, endpoint + distanceBeyondE0);
   hSpec.SetLineColor(kBlack);
@@ -224,14 +220,14 @@ void spec::Spectrum::FillSpectrum() {
   }
 
   // Now add the background events
-  // Poisson dist with mean of the calculated number of events
+  // Poisson dist with mean of the calculated number of events per bin
+  // Calculate the number of background throws
+  const double avgBkgEvents{background * hSpec.GetBinWidth(1) * oneYear *
+                            runningTime};
   std::poisson_distribution<int> pBkg(avgBkgEvents);
-  std::uniform_real_distribution<double> eDist(endpoint - spectrumSize,
-                                               endpoint + distanceBeyondE0);
-  const int nBkgEvents{pBkg(rng)};
-  for (int iBkg{0}; iBkg < nBkgEvents; iBkg++) {
-    double bkgE{eDist(rng)};
-    hSpec.Fill(bkgE);
+  for (int iBin{1}; iBin <= hSpec.GetNbinsX(); iBin++) {
+    int nBkg{pBkg(rng)};
+    hSpec.SetBinContent(iBin, hSpec.GetBinContent(iBin) + nBkg);
   }
 }
 
