@@ -9,8 +9,6 @@
 #ifndef SPECTRUM_H
 #define SPECTRUM_H
 
-#include <memory>
-
 #include "TH1.h"
 
 namespace spec {
