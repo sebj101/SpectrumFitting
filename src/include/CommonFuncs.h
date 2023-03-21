@@ -2,10 +2,13 @@
   CommonFuncs.h
 */
 
+#ifndef COMMON_FUNCS_H
+#define COMMON_FUNCS_H
+
 #include "src/include/FundamentalConstants.h"
 
 namespace spec {
-double DifferentialTDecayRate(double T, double E0, double mBeta) {
+double DifferentialTDecayRate(double E0, double T, double mBeta) {
   double nuE{E0 - T};
   if (nuE - mBeta < 0) {
     return 0;
@@ -22,4 +25,14 @@ double DifferentialTDecayRate(double T, double E0, double mBeta) {
     return rate;
   }
 }
+
+void SetHistStyle(TH1D &h) {
+  h.SetLineWidth(3);
+  h.GetXaxis()->SetTitleSize(0.05);
+  h.GetYaxis()->SetTitleSize(0.05);
+  h.GetXaxis()->SetLabelSize(0.05);
+  h.GetYaxis()->SetLabelSize(0.05);
+}
 }  // namespace spec
+
+#endif
