@@ -19,3 +19,6 @@ target_link_libraries(RandomSpectra PRIVATE Spectrum ${ROOT_LIBRARIES})
 
 add_executable(FitRangeTest FitRangeTest.cpp)
 target_link_libraries(FitRangeTest PRIVATE Spectrum ${ROOT_LIBRARIES})
+
+add_executable(EndpointFit EndpointFit.cpp)
+target_link_libraries(EndpointFit PRIVATE Spectrum ${ROOT_LIBRARIES})
