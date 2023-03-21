@@ -9,6 +9,7 @@
 #include <random>
 #include <vector>
 
+#include "src/include/CommonNumbers.h"
 #include "src/include/FundamentalConstants.h"
 #include "src/include/NuFitParams.h"
 
@@ -182,11 +183,9 @@ double spec::Spectrum::GetMBetaMin() {
 }
 
 void spec::Spectrum::FillSpectrum() {
-  const double tauMean{560975924};
   const double lasteVFrac{2.9e-13};
-  const double oneYear{31536000};
   // Calculate rate in last eV in absence of mass
-  const double r{nAtoms * lasteVFrac / tauMean};
+  const double r{nAtoms * lasteVFrac / T_MEAN_LIFETIME};
   // Calculate optimum energy window
   const double deltaEOpt{sqrt(background / r)};
   // If left as default, use this for energy binning
@@ -214,7 +213,7 @@ void spec::Spectrum::FillSpectrum() {
     double binDecayRate{SpectrumIntegral(
         hSpec.GetBinLowEdge(iBin),
         hSpec.GetBinLowEdge(iBin) + hSpec.GetBinWidth(iBin), 10)};
-    double meanDecays{binDecayRate * nAtoms * runningTime * oneYear};
+    double meanDecays{binDecayRate * nAtoms * runningTime * ONE_YEAR};
     std::poisson_distribution<long> p(meanDecays);
     hSpec.SetBinContent(iBin, double(p(rng)));
   }
@@ -222,7 +221,7 @@ void spec::Spectrum::FillSpectrum() {
   // Now add the background events
   // Poisson dist with mean of the calculated number of events per bin
   // Calculate the number of background throws
-  const double avgBkgEvents{background * hSpec.GetBinWidth(1) * oneYear *
+  const double avgBkgEvents{background * hSpec.GetBinWidth(1) * ONE_YEAR *
                             runningTime};
   std::poisson_distribution<int> pBkg(avgBkgEvents);
   for (int iBin{1}; iBin <= hSpec.GetNbinsX(); iBin++) {
@@ -232,12 +231,10 @@ void spec::Spectrum::FillSpectrum() {
 }
 
 double spec::Spectrum::GetSigmaMBetaSq() {
-  const double tauMean{560975924};
   const double lasteVFrac{2.9e-13};
-  const double oneYear{3.1536e7};
-  const double t{oneYear * runningTime};  // seconds
+  const double t{ONE_YEAR * runningTime};  // seconds
   // Calculate rate in last eV in absence of mass
-  const double r{nAtoms * lasteVFrac / tauMean};
+  const double r{nAtoms * lasteVFrac / T_MEAN_LIFETIME};
   // Calculate optimum energy window
   double sigma{sqrt(r * t * dE + background * t / dE)};
   return 2 / (3 * r * t) * sigma;
