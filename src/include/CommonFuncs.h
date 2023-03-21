@@ -5,6 +5,8 @@
 #ifndef COMMON_FUNCS_H
 #define COMMON_FUNCS_H
 
+#include "TGraph.h"
+#include "TH1.h"
 #include "src/include/FundamentalConstants.h"
 
 namespace spec {
@@ -32,6 +34,15 @@ void SetHistStyle(TH1D &h) {
   h.GetYaxis()->SetTitleSize(0.05);
   h.GetXaxis()->SetLabelSize(0.05);
   h.GetYaxis()->SetLabelSize(0.05);
+}
+
+void SetGraphStyle(TGraph &gr) {
+  gr.SetMarkerStyle(20);
+  gr.SetLineWidth(2);
+  gr.GetXaxis()->SetTitleSize(0.05);
+  gr.GetYaxis()->SetTitleSize(0.05);
+  gr.GetXaxis()->SetLabelSize(0.05);
+  gr.GetYaxis()->SetLabelSize(0.05);
 }
 }  // namespace spec
 
