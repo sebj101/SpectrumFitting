@@ -208,25 +208,25 @@ void spec::Spectrum::FillSpectrum() {
   // distribution to get the acutal number of events
   long int seed{std::chrono::system_clock::now().time_since_epoch().count()};
   std::mt19937 rng(seed);
+
+  // Do the background events at the same time
+  // Poisson dist with mean of the calculated number of events per bin
+  // Calculate the number of background throws
+  const double avgBkgEvents{background * hSpec.GetBinWidth(1) * ONE_YEAR *
+                            runningTime};
+  std::poisson_distribution<int> pBkg(avgBkgEvents);
+
   for (int iBin{1}; iBin <= hSpec.GetNbinsX(); iBin++) {
     // Integrate over bin
     double binDecayRate{SpectrumIntegral(
         hSpec.GetBinLowEdge(iBin),
         hSpec.GetBinLowEdge(iBin) + hSpec.GetBinWidth(iBin), 10)};
     double meanDecays{binDecayRate * nAtoms * runningTime * ONE_YEAR};
-    std::poisson_distribution<long> p(meanDecays);
-    hSpec.SetBinContent(iBin, double(p(rng)));
-  }
-
-  // Now add the background events
-  // Poisson dist with mean of the calculated number of events per bin
-  // Calculate the number of background throws
-  const double avgBkgEvents{background * hSpec.GetBinWidth(1) * ONE_YEAR *
-                            runningTime};
-  std::poisson_distribution<int> pBkg(avgBkgEvents);
-  for (int iBin{1}; iBin <= hSpec.GetNbinsX(); iBin++) {
+    std::poisson_distribution<long> pSignal(meanDecays);
     int nBkg{pBkg(rng)};
-    hSpec.SetBinContent(iBin, hSpec.GetBinContent(iBin) + nBkg);
+    long nSignal{pSignal(rng)};
+    double totalBinEvents{double(nSignal) + double(nBkg)};
+    hSpec.SetBinContent(iBin, totalBinEvents);
   }
 }
 
