@@ -239,3 +239,13 @@ double spec::Spectrum::GetSigmaMBetaSq() {
   double sigma{sqrt(r * t * dE + background * t / dE)};
   return 2 / (3 * r * t) * sigma;
 }
+
+TH1D spec::Spectrum::GetSpectrumNorm() {
+  TH1D hSpecNorm{hSpec};  // Copy the original spectrum
+  hSpecNorm.GetYaxis()->SetTitle("Events [eV^{-1} s^{-1} atom^{-1}]");
+  // Scale by the bin width
+  hSpecNorm.Scale(1, "width");
+  // Divide by the number of seconds and the number of atoms
+  hSpecNorm.Scale(1 / (runningTime * ONE_YEAR * nAtoms));
+  return hSpecNorm;
+}

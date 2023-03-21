@@ -90,6 +90,10 @@ class Spectrum {
 
   TH1D GetSpectrum() { return hSpec; }
 
+  /// @brief Return a normalised spectrum (units of eV^-1 s^-1 on y axis)
+  /// @return The normalised histogram
+  TH1D GetSpectrumNorm();
+
   /// @brief Calculates (analytically) the standard deviation on m_beta^2
   /// @return Standard deviation on m_beta^2 [eV^2]
   double GetSigmaMBetaSq();
